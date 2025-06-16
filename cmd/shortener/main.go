@@ -8,19 +8,21 @@ import (
 	"syscall"
 
 	"github.com/BeInBloom/anima-sol/internal/app"
-	defaultmuxbuilder "github.com/BeInBloom/anima-sol/internal/router_builder/default_mux_builder"
+	"github.com/BeInBloom/anima-sol/internal/di"
 	"github.com/BeInBloom/anima-sol/models"
 )
 
 func main() {
-	builder := defaultmuxbuilder.New()
+	cfg := models.Config{
+		ServerConfig: models.ServerConfig{
+			Host: "localhost",
+			Port: 8000,
+		},
+	}
 
-	a := app.New(models.ServerDeps{
-		Scheme:     "http",
-		Host:       "localhost",
-		Port:       8000,
-		MuxBuilder: builder,
-	})
+	di := di.New(cfg)
+
+	a := di.Server()
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)

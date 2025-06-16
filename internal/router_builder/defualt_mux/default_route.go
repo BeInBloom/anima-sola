@@ -14,6 +14,6 @@ type (
 
 func (r *route) With(mws ...middleware) {
 	for _, mw := range mws {
-		mw.Wrap(r.handler)
+		mw(r.handler)
 	}
 }

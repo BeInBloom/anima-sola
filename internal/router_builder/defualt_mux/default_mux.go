@@ -5,25 +5,21 @@ import (
 	"regexp"
 )
 
-type (
-	mux struct {
-		mw    []middleware
-		routs []*route
-	}
+type middleware func(http.Handler) http.Handler
 
-	middleware interface {
-		Wrap(http.Handler) http.Handler
-	}
-)
+type Mux struct {
+	mw    []middleware
+	routs []*route
+}
 
-func New() *mux {
-	return &mux{
+func New() *Mux {
+	return &Mux{
 		mw:    make([]middleware, 0),
 		routs: make([]*route, 0),
 	}
 }
 
-func (m *mux) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+func (m *Mux) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	url := req.URL.Path
 
 	for _, route := range m.routs {
@@ -36,11 +32,11 @@ func (m *mux) ServeHTTP(res http.ResponseWriter, req *http.Request) {
 	http.NotFound(res, req)
 }
 
-func (m *mux) WhitMiddleware(mw ...middleware) {
+func (m *Mux) Whit(mw ...middleware) {
 	m.mw = append(m.mw, mw...)
 }
 
-func (m *mux) SetRoute(pattern string, handler http.Handler) *route {
+func (m *Mux) SetRoute(pattern string, handler http.Handler) *route {
 	re := regexp.MustCompile(pattern)
 	route := &route{re, m.chain(handler)}
 	m.routs = append(m.routs, route)
@@ -48,14 +44,14 @@ func (m *mux) SetRoute(pattern string, handler http.Handler) *route {
 	return route
 }
 
-func (m *mux) chain(h http.Handler) http.Handler {
+func (m *Mux) chain(h http.Handler) http.Handler {
 	if len(m.mw) == 0 {
 		return h
 	}
 
 	var handler http.Handler
 	for _, mw := range m.mw {
-		handler = mw.Wrap(h)
+		handler = mw(h)
 	}
 
 	return handler

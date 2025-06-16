@@ -5,18 +5,18 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/BeInBloom/anima-sol/models"
 )
 
 var (
-	ErrAppClosed = errors.New("app was close")
+	ErrAppClosed     = errors.New("app was close")
+	ErrOnClosingAggp = errors.New("closing error")
 )
 
 type (
-	app struct {
+	ServerApp struct {
 		server *http.Server
 	}
 
@@ -25,28 +25,40 @@ type (
 	}
 )
 
-func New(deps models.ServerDeps) app {
-	u := &url.URL{
-		Scheme: deps.Scheme,
-		Host:   fmt.Sprintf("%s:%d", deps.Host, deps.Port),
-	}
-
+func New(deps models.ServerDeps) *ServerApp {
 	s := http.Server{
-		Addr:    u.Host,
+		Addr:    fmt.Sprintf("%s:%d", deps.Host, deps.Port),
 		Handler: deps.MuxBuilder.Router(),
 	}
 
-	return app{
+	return &ServerApp{
 		server: &s,
 	}
 }
 
-func (a *app) Run() error {
-	return a.server.ListenAndServe()
+func (a *ServerApp) Run() error {
+	const fn = "appr.Run"
+
+	if err := a.server.ListenAndServe(); err != nil {
+		if errors.Is(err, http.ErrServerClosed) {
+			return ErrAppClosed
+		}
+
+		return fmt.Errorf("%s:%w", fn, err)
+	}
+
+	return nil
 }
 
-func (a *app) Close() error {
+func (a *ServerApp) Close() error {
+	const fn = "app.Colose"
+
 	ctx, cansel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cansel()
-	return a.server.Shutdown(ctx)
+
+	if err := a.server.Shutdown(ctx); err != nil {
+		return ErrOnClosingAggp
+	}
+
+	return nil
 }

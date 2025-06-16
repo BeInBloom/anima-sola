@@ -6,34 +6,27 @@ import (
 	defualtmux "github.com/BeInBloom/anima-sol/internal/router_builder/defualt_mux"
 )
 
-type (
-	middleware interface {
-		Wrap(http.Handler) http.Handler
-	}
+type Builder struct {
+	mux http.Handler
+}
 
-	mux interface {
-		http.Handler
-		SetRoute(pattern string, handler http.Handler)
-		WhitMiddleware(mw ...middleware)
-	}
+type handlerFactory interface {
+	SetURLHandler() http.Handler
+	GetURLHandler() http.Handler
+}
 
-	builder struct {
-		mux http.Handler
-	}
-)
-
-func New() *builder {
+func New(hf handlerFactory) *Builder {
 	mux := defualtmux.New()
 
-	mux.SetRoute("/hello", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("hello"))
-	}))
+	mux.SetRoute("^/$", hf.SetURLHandler())
 
-	return &builder{
+	mux.SetRoute("^/([A-Za-z0-9]+)/?$", hf.GetURLHandler())
+
+	return &Builder{
 		mux: mux,
 	}
 }
 
-func (b *builder) Router() http.Handler {
+func (b *Builder) Router() http.Handler {
 	return b.mux
 }
