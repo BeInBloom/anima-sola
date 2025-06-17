@@ -16,7 +16,7 @@ func main() {
 	cfg := models.Config{
 		ServerConfig: models.ServerConfig{
 			Host: "localhost",
-			Port: 8000,
+			Port: 8080,
 		},
 	}
 
