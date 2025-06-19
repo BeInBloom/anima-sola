@@ -34,10 +34,10 @@ func (h *Handlers) SetURLHandler() http.Handler {
 			return
 		}
 
-		if !isValidURL(string(url)) {
-			h.handleError(w, []byte("not url"), http.StatusBadRequest)
-			return
-		}
+		// if !isValidURL(string(url)) {
+		// 	h.handleError(w, []byte("not url"), http.StatusBadRequest)
+		// 	return
+		// }
 
 		shortURL := getShortURL()
 
