@@ -61,7 +61,7 @@ func (h *Handlers) GetURLHandler() http.Handler {
 
 		match := re.FindStringSubmatch(r.URL.Path)
 		if len(match) < 2 {
-			h.handleError(w, []byte("not correct query"), http.StatusBadRequest)
+			h.handleError(w, []byte("not correct query"), http.StatusNotFound)
 			return
 		}
 
@@ -72,8 +72,8 @@ func (h *Handlers) GetURLHandler() http.Handler {
 			return
 		}
 
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(fullURL))
+		w.Header().Set("Location", fullURL)
+		w.WriteHeader(http.StatusTemporaryRedirect)
 	}
 
 	return http.HandlerFunc(f)
@@ -100,5 +100,5 @@ func getShortURL() []byte {
 
 func isValidURL(uri string) bool {
 	u, err := url.ParseRequestURI(uri)
-	return err == nil && u.Host != ""
+	return err == nil && u.Host != "" && u.Scheme != ""
 }
