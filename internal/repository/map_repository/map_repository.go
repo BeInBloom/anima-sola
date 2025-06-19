@@ -1,6 +1,13 @@
 package maprepository
 
-import "sync"
+import (
+	"errors"
+	"sync"
+)
+
+var (
+	ErrNotFound = errors.New("key not found")
+)
 
 type Repo struct {
 	mu      sync.RWMutex
@@ -25,5 +32,11 @@ func (r *Repo) Set(key, value string) error {
 func (r *Repo) Get(key string) (string, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	return r.storage[key], nil
+
+	val, ok := r.storage[key]
+	if !ok {
+		return "", ErrNotFound
+	}
+
+	return val, nil
 }
