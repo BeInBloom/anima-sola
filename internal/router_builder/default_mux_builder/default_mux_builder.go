@@ -4,23 +4,20 @@ import (
 	"net/http"
 
 	defualtmux "github.com/BeInBloom/anima-sol/internal/router_builder/defualt_mux"
+	"github.com/BeInBloom/anima-sol/models"
 )
 
 type Builder struct {
 	mux http.Handler
 }
 
-type handlerFactory interface {
-	SetURLHandler() http.Handler
-	GetURLHandler() http.Handler
-}
-
-func New(hf handlerFactory) *Builder {
+func New(deps models.MuxBuilderDeps) *Builder {
 	mux := defualtmux.New()
 
-	mux.SetRoute("^/$", hf.SetURLHandler())
+	mux.Whit(deps.MwFactory.Logger())
 
-	mux.SetRoute("^/([A-Za-z0-9]+)/?$", hf.GetURLHandler())
+	mux.SetRoute("^/$", deps.HandlersFactory.SetURLHandler())
+	mux.SetRoute("^/([A-Za-z0-9]+)/?$", deps.HandlersFactory.GetURLHandler())
 
 	return &Builder{
 		mux: mux,

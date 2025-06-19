@@ -100,5 +100,5 @@ func getShortURL() []byte {
 
 func isValidURL(uri string) bool {
 	u, err := url.ParseRequestURI(uri)
-	return err == nil && u.Scheme != "" && u.Host != ""
+	return err == nil && u.Host != ""
 }

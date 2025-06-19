@@ -5,7 +5,7 @@ import (
 	"regexp"
 )
 
-type middleware func(http.Handler) http.Handler
+type middleware = func(http.Handler) http.Handler
 
 type Mux struct {
 	mw    []middleware
